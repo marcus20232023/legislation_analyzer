@@ -1,75 +1,40 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Materialize components
-    M.AutoInit();
-
-    const billSelect = document.getElementById('bill-select');
+document.addEventListener('DOMContentLoaded', function() {
     const analyzeBtn = document.getElementById('analyze-btn');
-    const loading = document.getElementById('loading');
-    const result = document.getElementById('result');
+    const pdfUrlInput = document.getElementById('pdf-url');
+    const loadingIndicator = document.getElementById('loading');
+    const resultContainer = document.getElementById('result');
     const analysisText = document.getElementById('analysis-text');
 
-    // Fetch bills and populate the dropdown
-    fetchBills();
-
-    analyzeBtn.addEventListener('click', analyzeBill);
-
-    async function fetchBills() {
-        try {
-            const response = await fetch('/get_bills');
-            const bills = await response.json();
-
-            bills.forEach(bill => {
-                const option = document.createElement('option');
-                option.value = 'https://www.parl.ca/Content/Bills/441/Government/S-3/S-3_1/S-3_1.PDF';
-                option.textContent = bill.title;
-                billSelect.appendChild(option);
-            });
-
-            // Reinitialize Materialize select
-            M.FormSelect.init(billSelect);
-        } catch (error) {
-            console.error('Error fetching bills:', error);
-            M.toast({html: 'Error fetching bills. Please try again later.', classes: 'red'});
-        }
-    }
-
-    async function analyzeBill() {
-        const pdfUrlInput = document.getElementById('pdf-url').value;
-        const selectedBillUrl = billSelect.value || pdfUrlInput;
-        const pdfUrlInput = document.getElementById('pdf-url').value;
-        const selectedBillUrl = billSelect.value || pdfUrlInput;
-
-        if (!selectedBillUrl) {
-            M.toast({html: 'Please select a bill to analyze', classes: 'red'});
+    analyzeBtn.addEventListener('click', async function() {
+        const pdfUrl = pdfUrlInput.value.trim();
+        if (!pdfUrl) {
+            M.toast({html: 'Please enter a PDF URL', classes: 'red'});
             return;
         }
 
-        loading.classList.remove('hidden');
-        result.classList.add('hidden');
+        loadingIndicator.classList.remove('hidden');
+        resultContainer.classList.add('hidden');
 
         try {
-            const response = await fetch('/analyze_bill', {
+            const response = await fetch('/analyze', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ bill_url: selectedBillUrl }),
+                body: JSON.stringify({ pdf_url: pdfUrl })
             });
 
             const data = await response.json();
-
             if (data.error) {
                 M.toast({html: data.error, classes: 'red'});
             } else {
                 analysisText.textContent = data.analysis;
-                result.classList.remove('hidden');
-                M.toast({html: 'Analysis complete!', classes: 'green'});
+                resultContainer.classList.remove('hidden');
             }
         } catch (error) {
-            console.error('Error:', error);
-            M.toast({html: 'An error occurred while analyzing the legislation', classes: 'red'});
+            M.toast({html: 'An error occurred while analyzing the PDF', classes: 'red'});
         } finally {
-            loading.classList.add('hidden');
+            loadingIndicator.classList.add('hidden');
         }
-    }
+    });
 });
