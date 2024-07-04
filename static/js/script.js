@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-document.addEventListener('DOMContentLoaded', function() {
     const analyzeBtn = document.getElementById('analyze-btn');
     const billsDropdown = document.getElementById('bills-dropdown');
     const pdfUrlInput = document.getElementById('pdf-url');
