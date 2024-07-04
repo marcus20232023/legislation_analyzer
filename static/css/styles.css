@@ -108,4 +108,12 @@ a {
     h5 {
         font-size: 1.5rem;
     }
+}#loading {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#analysis-result {
+    margin-top: 20px;
+    font-size: 1.2em;
 }
