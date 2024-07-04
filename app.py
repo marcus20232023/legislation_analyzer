@@ -1,51 +1,32 @@
-import re
-import requests
-from bs4 import BeautifulSoup
-import logging
-from functools import lru_cache
 import io
+import logging
+import requests
 import PyPDF2
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ... (keep the rest of the imports and setup)
+# Load environment variables
+load_dotenv()
 
-@lru_cache(maxsize=100)
-def fetch_bill_text(url):
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+def fetch_bill_text(pdf_url):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
     
-    # Extract bill number and session from the URL
-    match = re.search(r'/bill/(\d+-\d+)/([A-Z]-\d+)', url)
-    if not match:
-        return {"error": "Unable to extract bill information from URL"}
-    
-    session, bill_number = match.groups()
-    
-    # Construct the correct DocumentViewer URL
-    document_viewer_url = f"https://www.parl.ca/DocumentViewer/en/{session}/bill/{bill_number}/first-reading"
-    
     try:
-        logger.info(f"Fetching DocumentViewer page: {document_viewer_url}")
-        response = requests.get(document_viewer_url, headers=headers)
+        logger.info(f"Fetching PDF from: {pdf_url}")
+        response = requests.get(pdf_url, headers=headers)
         response.raise_for_status()
         
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Directly construct the PDF URL
-        pdf_url = f"https://www.parl.ca/Content/Bills/{session}/Government/{bill_number}/{bill_number}_1/{bill_number}_1.PDF"
-        
-        logger.info(f"PDF link constructed: {pdf_url}")
-        logger.info(f"Session: {session}, Bill Number: {bill_number}")
-        
-        # Fetch and process the PDF
-        pdf_response = requests.get(pdf_url, headers=headers)
-        pdf_response.raise_for_status()
-        
-        pdf_file = io.BytesIO(pdf_response.content)
+        pdf_file = io.BytesIO(response.content)
         pdf_reader = PyPDF2.PdfReader(pdf_file)
         text = ""
         for page in pdf_reader.pages:
@@ -56,10 +37,39 @@ def fetch_bill_text(url):
             return {"text": text, "url": pdf_url}
         else:
             logger.warning("No text content found")
-            return {"error": "No text content found in the bill"}
+            return {"error": "No text content found in the PDF"}
         
     except requests.exceptions.RequestException as err:
-        logger.error(f"Error fetching bill text: {str(err)}")
-        return {"error": f"Failed to fetch bill text: {str(err)}"}
+        logger.error(f"Error fetching PDF: {str(err)}")
+        return {"error": f"Failed to fetch PDF: {str(err)}"}
 
-# ... (keep the rest of the file unchanged)
+def analyze_bill_text(text):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that analyzes legislative bills."},
+                {"role": "user", "content": f"Please analyze the following bill text and provide a summary, key points, and potential impacts:\n\n{text[:4000]}"}  # Limiting to 4000 characters for this example
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"Error in OpenAI API call: {str(e)}")
+        return f"Error in analysis: {str(e)}"
+
+def main(pdf_url):
+    bill_data = fetch_bill_text(pdf_url)
+    
+    if "error" in bill_data:
+        print(f"Error: {bill_data['error']}")
+        return
+
+    bill_text = bill_data["text"]
+    analysis = analyze_bill_text(bill_text)
+    
+    print("Bill Analysis:")
+    print(analysis)
+
+if __name__ == "__main__":
+    pdf_url = input("Please enter the URL of the PDF file to analyze: ")
+    main(pdf_url)
