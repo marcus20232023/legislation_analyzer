@@ -38,3 +38,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const loading = document.getElementById('loading');
+    const analysisResult = document.getElementById('analysis-result');
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const pdfUrl = document.querySelector('input[name="pdf_url"]').value;
+
+        loading.style.display = 'block';
+        analysisResult.innerHTML = '';
+
+        fetch('/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ pdf_url: pdfUrl })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
+            if (data.error) {
+                analysisResult.innerHTML = `<p>Error: ${data.error}</p>`;
+            } else {
+                analysisResult.innerHTML = `<p>${data.analysis}</p>`;
+            }
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            analysisResult.innerHTML = `<p>Error: ${error.message}</p>`;
+        });
+    });
+});
