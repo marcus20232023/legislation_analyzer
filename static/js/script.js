@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function analyzeBill() {
-        const selectedBillUrl = billSelect.value;
+        const pdfUrlInput = document.getElementById('pdf-url').value;
+        const selectedBillUrl = billSelect.value || pdfUrlInput;
         const pdfUrlInput = document.getElementById('pdf-url').value;
         const selectedBillUrl = billSelect.value || pdfUrlInput;
 
