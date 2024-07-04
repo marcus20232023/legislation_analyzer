@@ -72,7 +72,9 @@ def analyze_bill_text(text):
                 {"role": "user", "content": f"Please analyze the following bill text and provide a summary, key points, and potential impacts:\n\n{text[:4000]}"}  # Limiting to 4000 characters for this example
             ]
         )
-        return response.choices[0].message.content
+        analysis_content = response.choices[0].message.content
+        logger.info(f"Received analysis: {analysis_content}")
+        return analysis_content
     except Exception as e:
         logger.error(f"Error in OpenAI API call: {str(e)}")
         return f"Error in analysis: {str(e)}"
