@@ -1,0 +1,111 @@
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    background-color: #f5f5f5;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+nav .brand-logo {
+    font-weight: 300;
+}
+
+.container {
+    margin-top: 2rem;
+}
+
+.card-panel {
+    border-radius: 8px;
+}
+
+.file-field .btn {
+    height: 3rem;
+    line-height: 3rem;
+}
+
+.file-field .file-path-wrapper {
+    height: 3rem;
+}
+
+.file-field input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+}
+
+.btn-large {
+    margin-top: 1rem;
+}
+
+#loading {
+    margin-top: 2rem;
+}
+
+#result {
+    margin-top: 2rem;
+}
+
+#analysis-text {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Custom color for links */
+a {
+    color: #1565c0;
+}
+
+/* Custom styles for form labels */
+.input-field label {
+    color: #1565c0;
+}
+
+/* Custom styles for form input focus */
+.input-field input[type=text]:focus + label {
+    color: #1565c0;
+}
+
+.input-field input[type=text]:focus {
+    border-bottom: 1px solid #1565c0;
+    box-shadow: 0 1px 0 0 #1565c0;
+}
+
+/* Custom styles for file input */
+.file-field .btn {
+    background-color: #1565c0;
+}
+
+.file-field .btn:hover {
+    background-color: #1976d2;
+}
+
+/* Custom styles for submit button */
+.btn-large {
+    background-color: #1565c0;
+}
+
+.btn-large:hover {
+    background-color: #1976d2;
+}
+
+/* Responsive font sizes */
+@media only screen and (max-width: 600px) {
+    h5 {
+        font-size: 1.5rem;
+    }
+}
