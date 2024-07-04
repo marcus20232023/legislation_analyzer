@@ -26,17 +26,17 @@ def index():
 
 @app.route('/bills', methods=['GET'])
 def get_bills():
-    url = "https://www.parl.ca/legisinfo/en/bills/xml"
+    url = "https://www.parl.ca/legisinfo/en/bills/rss"
     response = requests.get(url)
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch bills data"}), 500
 
     bills = []
     root = ET.fromstring(response.content)
-    for bill in root.findall('.//Bill'):
-        bill_id = bill.find('BillNumber').text
-        title = bill.find('Title').text
-        link = f"https://www.parl.ca/Content/Bills/441/Private/{bill_id}/{bill_id}_3/{bill_id}_E.xml"
+    for item in root.findall('.//item'):
+        title = item.find('title').text
+        link = item.find('link').text
+        bill_id = link.split('/')[-1].split('_')[0]  # Extract bill ID from the link
         bills.append({"id": bill_id, "title": title, "link": link})
 
     return jsonify(bills)
