@@ -25,7 +25,7 @@ def index():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    pdf_url = request.form['pdf_url']
+    pdf_url = request.json['pdf_url']
     bill_data = fetch_bill_text(pdf_url)
     
     if "error" in bill_data:
