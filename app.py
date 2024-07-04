@@ -52,7 +52,7 @@ def fetch_bill_text(url):
         
         if text.strip():
             logger.info("Successfully extracted bill text")
-            return {"text": text, "url": pdf_url if pdf_link else document_viewer_url}
+            return {"text": text, "url": pdf_url}
         else:
             logger.warning("No text content found")
             return {"error": "No text content found in the bill"}
