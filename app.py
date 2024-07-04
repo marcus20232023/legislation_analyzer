@@ -19,14 +19,14 @@ def fetch_bill_text(url):
     }
     
     # Extract bill number and session from the URL
-    match = re.search(r'/(\d+-\d+)/([A-Z]-\d+)', url)
+    match = re.search(r'/bill/(\d+-\d+)/([A-Z]-\d+)', url)
     if not match:
         return {"error": "Unable to extract bill information from URL"}
     
     session, bill_number = match.groups()
     
-    # Construct the correct PDF URL
-    document_viewer_url = f"https://www.parl.ca/Content/Bills/{session}/Government/{bill_number}/{bill_number}_1/{bill_number}_1.PDF"
+    # Construct the correct DocumentViewer URL
+    document_viewer_url = f"https://www.parl.ca/DocumentViewer/en/{session}/bill/{bill_number}/first-reading"
     
     try:
         logger.info(f"Fetching DocumentViewer page: {document_viewer_url}")
@@ -35,33 +35,20 @@ def fetch_bill_text(url):
         
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Look for the PDF link
-        pdf_link = soup.find('a', href=re.compile(r'.*\.pdf$', re.IGNORECASE))
+        # Directly construct the PDF URL
+        pdf_url = f"https://www.parl.ca/Content/Bills/{session}/Government/{bill_number}/{bill_number}_1/{bill_number}_1.PDF"
         
-        if pdf_link:
-            pdf_url = pdf_link['href']
-            if not pdf_url.startswith('http'):
-                pdf_url = 'https://www.parl.ca' + pdf_url
-            
-            logger.info(f"PDF link found: {pdf_url}")
-            
-            # Fetch and process the PDF
-            pdf_response = requests.get(pdf_url, headers=headers)
-            pdf_response.raise_for_status()
-            
-            pdf_file = io.BytesIO(pdf_response.content)
-            pdf_reader = PyPDF2.PdfReader(pdf_file)
-            text = ""
-            for page in pdf_reader.pages:
-                text += page.extract_text()
-        else:
-            logger.warning("No PDF link found. Extracting text from HTML.")
-            # If no PDF link is found, extract text from the HTML
-            main_content = soup.find('div', id='publicationContent')
-            if main_content:
-                text = main_content.get_text(strip=True)
-            else:
-                text = soup.get_text(strip=True)
+        logger.info(f"PDF link constructed: {pdf_url}")
+        
+        # Fetch and process the PDF
+        pdf_response = requests.get(pdf_url, headers=headers)
+        pdf_response.raise_for_status()
+        
+        pdf_file = io.BytesIO(pdf_response.content)
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text()
         
         if text.strip():
             logger.info("Successfully extracted bill text")
