@@ -1,110 +1,73 @@
-from flask import Flask, render_template, request, jsonify
-import openai
-import os
-import logging
-import feedparser
+import re
 import requests
 from bs4 import BeautifulSoup
+import logging
+from functools import lru_cache
+import io
+import PyPDF2
 
-app = Flask(__name__)
+# ... (keep the rest of the imports and setup)
 
-# Set up logging.
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Load OpenAI API key from environment variable
-openai.api_key = os.getenv('OPENAI_API_KEY')
-if not openai.api_key:
-    logger.warning("No OpenAI API key found. Please set the OPENAI_API_KEY environment variable.")
-else:
-    logger.info(f"OpenAI API key loaded. Key starts with: {openai.api_key[:5]}...")
-
-RSS_FEED_URL = "https://www.parl.ca/legisinfo/en/bills/rss"
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/get_bills')
-def get_bills():
-    feed = feedparser.parse(RSS_FEED_URL)
-    bills = []
-    for entry in feed.entries:
-        bills.append({
-            'title': entry.title,
-            'link': entry.link,
-            'description': entry.description
-        })
-    return jsonify(bills)
-
-@app.route('/analyze_bill', methods=['POST'])
-def analyze_bill():
-    bill_url = request.json.get('bill_url')
-    if not bill_url:
-        return jsonify({'error': 'No bill URL provided'})
-    
-    try:
-        bill_text = fetch_bill_text(bill_url)
-        analysis = analyze_legislation(bill_text)
-        return jsonify({'analysis': analysis})
-    except Exception as e:
-        logger.error(f"Error analyzing bill {bill_url}: {str(e)}")
-        return jsonify({'error': 'An error occurred while analyzing the bill. Please try again'})
-
+@lru_cache(maxsize=100)
 def fetch_bill_text(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    # Try to find the bill text in various possible locations
-    bill_text = None
-    possible_containers = [
-        soup.find('div', class_='BillTextContainer'),
-        soup.find('div', id='billTextContainer'),
-        soup.find('div', class_='BillText'),
-        soup.find('pre', class_='BillTextPre')
-    ]
-    for container in possible_containers:
-        if container:
-            bill_text = container.get_text(strip=True)
-            break
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
     
-    if not bill_text:
-        # If we couldn't find the bill text, get all the text from the page
-        bill_text = soup.get_text(strip=True)
+    # Extract bill number and session from the URL
+    match = re.search(r'/(\d+-\d+)/([A-Z]-\d+)', url)
+    if not match:
+        return {"error": "Unable to extract bill information from URL"}
     
-    return bill_text
-
-def analyze_legislation(text):
-    if not openai.api_key:
-        logger.error("OpenAI API key is not set.")
-        return "Error: OpenAI API key is not set. Please contact the administrator."
-
-    # Truncate the text if it's too long
-    max_text_length = 3000  # Adjust this value as needed
-    truncated_text = text[:max_text_length] + ("..." if len(text) > max_text_length else "")
-
-    prompt = f"Analyze the following government legislation and explain the key changes. If the text appears to be truncated, focus on analyzing the available content:\n\n{truncated_text}"
+    session, bill_number = match.groups()
+    
+    # Construct the DocumentViewer URL
+    document_viewer_url = f"https://www.parl.ca/DocumentViewer/en/{session}/bill/{bill_number}/third-reading"
     
     try:
-        logger.info("Calling OpenAI API for analysis")
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an expert in analyzing government legislation."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500  # Limit the response length
-        )
-        logger.info("OpenAI API call successful")
-        return response.choices[0].message['content']
-    except openai.error.AuthenticationError as e:
-        logger.error(f"OpenAI API authentication error: {str(e)}")
-        return "Error: Unable to authenticate with the AI service. Please try again later or contact support."
-    except openai.error.OpenAIError as e:
-        logger.error(f"OpenAI API error: {str(e)}")
-        return "Error: An issue occurred with the AI analysis. Please try again later."
-    except Exception as e:
-        logger.error(f"Unexpected error during OpenAI API call: {str(e)}")
-        return "An unexpected error occurred. Please try again later or contact support."
+        logger.info(f"Fetching DocumentViewer page: {document_viewer_url}")
+        response = requests.get(document_viewer_url, headers=headers)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Look for the PDF link
+        pdf_link = soup.find('a', href=re.compile(r'.*\.pdf$', re.IGNORECASE))
+        
+        if pdf_link:
+            pdf_url = pdf_link['href']
+            if not pdf_url.startswith('http'):
+                pdf_url = 'https://www.parl.ca' + pdf_url
+            
+            logger.info(f"PDF link found: {pdf_url}")
+            
+            # Fetch and process the PDF
+            pdf_response = requests.get(pdf_url, headers=headers)
+            pdf_response.raise_for_status()
+            
+            pdf_file = io.BytesIO(pdf_response.content)
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+        else:
+            logger.warning("No PDF link found. Extracting text from HTML.")
+            # If no PDF link is found, extract text from the HTML
+            main_content = soup.find('div', id='publicationContent')
+            if main_content:
+                text = main_content.get_text(strip=True)
+            else:
+                text = soup.get_text(strip=True)
+        
+        if text.strip():
+            logger.info("Successfully extracted bill text")
+            return {"text": text, "url": pdf_url if pdf_link else document_viewer_url}
+        else:
+            logger.warning("No text content found")
+            return {"error": "No text content found in the bill"}
+        
+    except requests.exceptions.RequestException as err:
+        logger.error(f"Error fetching bill text: {str(err)}")
+        return {"error": f"Failed to fetch bill text: {str(err)}"}
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# ... (keep the rest of the file unchanged)
