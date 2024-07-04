@@ -39,6 +39,7 @@ def fetch_bill_text(url):
         pdf_url = f"https://www.parl.ca/Content/Bills/{session}/Government/{bill_number}/{bill_number}_1/{bill_number}_1.PDF"
         
         logger.info(f"PDF link constructed: {pdf_url}")
+        logger.info(f"Session: {session}, Bill Number: {bill_number}")
         
         # Fetch and process the PDF
         pdf_response = requests.get(pdf_url, headers=headers)
