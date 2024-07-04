@@ -5,7 +5,8 @@ import PyPDF2
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, url_for
+import xml.etree.ElementTree as ET
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +23,23 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/bills', methods=['GET'])
+def get_bills():
+    url = "https://www.parl.ca/legisinfo/en/bills/xml"
+    response = requests.get(url)
+    if response.status_code != 200:
+        return jsonify({"error": "Failed to fetch bills data"}), 500
+
+    bills = []
+    root = ET.fromstring(response.content)
+    for bill in root.findall('.//Bill'):
+        bill_id = bill.find('BillNumber').text
+        title = bill.find('Title').text
+        link = f"https://www.parl.ca/Content/Bills/441/Private/{bill_id}/{bill_id}_3/{bill_id}_E.xml"
+        bills.append({"id": bill_id, "title": title, "link": link})
+
+    return jsonify(bills)
 
 @app.route('/analyze', methods=['POST'])
 def analyze():

@@ -1,8 +1,35 @@
 document.addEventListener('DOMContentLoaded', function() {
     const analyzeBtn = document.getElementById('analyze-btn');
+    const billsList = document.getElementById('bills');
     const pdfUrlInput = document.getElementById('pdf-url');
     const loadingIndicator = document.getElementById('loading');
     const analysisResult = document.getElementById('analysis-result');
+
+    async function fetchBills() {
+        try {
+            const response = await fetch('/bills');
+            const bills = await response.json();
+            if (bills.error) {
+                M.toast({html: bills.error, classes: 'red'});
+            } else {
+                bills.forEach(bill => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = bill.link;
+                    a.textContent = `${bill.id}: ${bill.title}`;
+                    a.target = "_blank";
+                    li.appendChild(a);
+                    billsList.appendChild(li);
+                });
+            }
+        } catch (error) {
+            M.toast({html: 'An error occurred while fetching bills', classes: 'red'});
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchBills();
+    });
 
     analyzeBtn.addEventListener('click', async function() {
         const pdfUrl = pdfUrlInput.value.trim();
