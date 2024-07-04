@@ -6,6 +6,10 @@ from functools import lru_cache
 import io
 import PyPDF2
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # ... (keep the rest of the imports and setup)
 
 @lru_cache(maxsize=100)
