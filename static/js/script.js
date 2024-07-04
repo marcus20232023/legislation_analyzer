@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function analyzeBill() {
         const selectedBillUrl = billSelect.value;
+        const pdfUrlInput = document.getElementById('pdf-url').value;
+        const selectedBillUrl = billSelect.value || pdfUrlInput;
+
         if (!selectedBillUrl) {
             M.toast({html: 'Please select a bill to analyze', classes: 'red'});
             return;
