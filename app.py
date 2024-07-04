@@ -21,8 +21,8 @@ def fetch_bill_text(url):
     
     session, bill_number = match.groups()
     
-    # Construct the DocumentViewer URL
-    document_viewer_url = f"https://www.parl.ca/DocumentViewer/en/{session}/bill/{bill_number}/third-reading"
+    # Construct the correct PDF URL
+    document_viewer_url = f"https://www.parl.ca/Content/Bills/{session}/Government/{bill_number}/{bill_number}_1/{bill_number}_1.PDF"
     
     try:
         logger.info(f"Fetching DocumentViewer page: {document_viewer_url}")
