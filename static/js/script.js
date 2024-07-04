@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             bills.forEach(bill => {
                 const option = document.createElement('option');
-                option.value = 'https://www.parl.ca/Content/Bills/441/Government/S-3/S-3_1/S-3_1.PDF';
+                option.value = bill.url;
                 option.textContent = bill.title;
                 billSelect.appendChild(option);
             });
