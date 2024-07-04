@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const analyzeBtn = document.getElementById('analyze-btn');
-    const billsList = document.getElementById('bills');
+    const billsDropdown = document.getElementById('bills-dropdown');
     const pdfUrlInput = document.getElementById('pdf-url');
     const loadingIndicator = document.getElementById('loading');
     const analysisResult = document.getElementById('analysis-result');
@@ -13,13 +14,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 M.toast({html: bills.error, classes: 'red'});
             } else {
                 bills.forEach(bill => {
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
-                    a.href = bill.link;
-                    a.textContent = `${bill.id}: ${bill.title}`;
-                    a.target = "_blank";
-                    li.appendChild(a);
-                    billsList.appendChild(li);
+                    const option = document.createElement('option');
+                    option.value = bill.link;
+                    option.textContent = `${bill.id}: ${bill.title}`;
+                    billsDropdown.appendChild(option);
                 });
             }
         } catch (error) {
@@ -27,8 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        fetchBills();
+    fetchBills();
+
+    billsDropdown.addEventListener('change', function() {
+        pdfUrlInput.value = this.value;
     });
 
     analyzeBtn.addEventListener('click', async function() {
