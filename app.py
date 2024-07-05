@@ -1,7 +1,7 @@
 import io
 import logging
 import requests
-import PyPDF2
+from  PyPDF2 import PdfReader
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
@@ -65,7 +65,7 @@ def fetch_bill_text(pdf_url):
         response.raise_for_status()
         
         pdf_file = io.BytesIO(response.content)
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        pdf_reader = PdfReader(pdf_file)
         text = ""
         for page in pdf_reader.pages:
             text += page.extract_text()
