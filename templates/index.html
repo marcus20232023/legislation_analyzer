@@ -4,60 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legislation Analyzer</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <nav class="blue darken-3">
-        <div class="nav-wrapper container">
-            <a href="#" class="brand-logo">Legislation Analyzer</a>
-        </div>
-    </nav>
-
     <div class="container">
-        <div class="row">
-            <div class="col s12">
-                <div class="card-panel">
-                    <h5 class="center-align">Analyze Canadian Legislation</h5>
-                    <p class="center-align">
-                        Select a bill from the list below, and our AI-powered analyzer will explain the key changes.
-                    </p>
-                    <div id="bills-list" class="card-panel">
-                        <h5 class="center-align">Available Bills</h5>
-                        <select id="bills-dropdown" class="browser-default">
-                            <option value="" disabled selected>Select a bill</option>
-                        </select>
-                    </div>
-                    <div class="input-field">
-                        <input id="pdf-url" type="text" class="validate">
-                        <label for="pdf-url">Paste the PDF URL here</label>
-                    </div>
-                    <div class="center-align">
-                        <button id="analyze-btn" class="btn-large waves-effect waves-light blue">
-                            Analyze Legislation
-                            <i class="material-icons right">send</i>
-                        </button>
-                        <div id="loading" style="display: none;">
-                            <img src="/static/images/spinner.gif" alt="Loading...">
-                        </div>
-                        <div id="analysis-result" class="card-panel"></div>
-                    </div>
-                </div>
-            </div>
+        <h1>Legislation Analyzer</h1>
+        <div class="search-container">
+            <input type="text" id="pdf-url" placeholder="Enter PDF URL of the legislation">
+            <button id="analyze-btn">Analyze</button>
         </div>
-
-        <div id="loading" class="progress hidden" style="display: none;">
-            <div class="indeterminate"></div>
-        </div>
-
-        <div id="result" class="hidden" style="display: none;">
-            <h5>Analysis Results:</h5>
-            <div id="analysis-text" class="card-panel"></div>
-        </div>
+        <div id="loading">Analyzing... Please wait.</div>
+        <div id="analysis-result"></div>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

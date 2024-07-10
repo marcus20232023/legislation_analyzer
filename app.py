@@ -1,12 +1,11 @@
-import io
-import logging
-import requests
-from  PyPDF2 import PdfReader
+from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
-from flask import Flask, render_template, request, jsonify, url_for
-import xml.etree.ElementTree as ET
+import requests
+import io
+from PyPDF2 import PdfReader
+import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,23 +22,6 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return render_template('index.html')
-
-@app.route('/bills', methods=['GET'])
-def get_bills():
-    url = "https://www.parl.ca/legisinfo/en/bills/rss"
-    response = requests.get(url)
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to fetch bills data"}), 500
-
-    bills = []
-    root = ET.fromstring(response.content)
-    for item in root.findall('.//item'):
-        title = item.find('title').text
-        link = item.find('link').text
-        bill_id = link.split('/')[-1].split('_')[0]  # Extract bill ID from the link
-        bills.append({"id": bill_id, "title": title, "link": link})
-
-    return jsonify(bills)
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -96,19 +78,6 @@ def analyze_bill_text(text):
     except Exception as e:
         logger.error(f"Error in OpenAI API call: {str(e)}")
         return f"Error in analysis: {str(e)}"
-
-def main(pdf_url):
-    bill_data = fetch_bill_text(pdf_url)
-    
-    if "error" in bill_data:
-        print(f"Error: {bill_data['error']}")
-        return
-
-    bill_text = bill_data["text"]
-    analysis = analyze_bill_text(bill_text)
-    
-    print("Bill Analysis:")
-    print(analysis)
 
 if __name__ == "__main__":
     app.run(debug=True)
