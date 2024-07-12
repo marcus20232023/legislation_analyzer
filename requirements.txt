@@ -1,7 +1,7 @@
 Flask==2.3.2
 PyPDF2==3.0.1
 openai==0.27.8
-Werkzeug==2.3.6Flask==2.0.1
+Werkzeug==2.3.6
 openai==0.27.0
 anthropic==0.2.7
 requests==2.26.0
