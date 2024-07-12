@@ -87,14 +87,19 @@ def analyze_bill_text(text, api_key, api_model):
                 ]
             )
             analysis_content = response.choices[0].message.content
-        elif api_model == 'claude-3.5':
+        elif api_model == 'claude-3-5-sonnet-20240620':
             client = anthropic.Anthropic(api_key=api_key)
-            response = client.completions.create(
-                model="claude-3.5",
-                prompt=f"Human: Please analyze the following bill text and provide a summary, key points, and potential impacts:\n\n{text[:8000]}\n\nAssistant:",
-                max_tokens_to_sample=1000
+            response = client.messages.create(
+                model="claude-3-5-sonnet-20240620",
+                max_tokens=1000,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"Please analyze the following bill text and provide a summary, key points, and potential impacts:\n\n{text[:8000]}"
+                    }
+                ]
             )
-            analysis_content = response.completion
+            analysis_content = response.content[0].text
         else:
             return "Invalid API model selected"
 

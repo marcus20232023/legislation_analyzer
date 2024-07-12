@@ -6,6 +6,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const pdfFileInput = document.getElementById('pdf-file');
     const loadingDiv = document.getElementById('loading');
     const analysisResultDiv = document.getElementById('analysis-result');
+    const themeToggle = document.getElementById('theme-toggle');
+
+    // Theme handling
+    function setTheme(isDark) {
+        document.body.classList.toggle('dark-theme', isDark);
+        localStorage.setItem('darkTheme', isDark);
+    }
+
+    // Check for saved theme preference or use system preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('darkTheme');
+    setTheme(savedTheme !== null ? savedTheme === 'true' : prefersDark);
+
+    // Theme toggle button
+    themeToggle.addEventListener('click', () => {
+        setTheme(!document.body.classList.contains('dark-theme'));
+    });
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        setTheme(e.matches);
+    });
 
     analyzeBtn.addEventListener('click', function() {
         const apiKey = apiKeyInput.value.trim();
