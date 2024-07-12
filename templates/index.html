@@ -10,10 +10,23 @@
 <body>
     <div class="container">
         <h1>Legislation Analyzer</h1>
-        <div class="search-container">
-            <input type="text" id="pdf-url" placeholder="Enter PDF URL of the legislation">
-            <button id="analyze-btn">Analyze</button>
+        <div class="input-container">
+            <label for="api-key">API Key:</label>
+            <input type="password" id="api-key" placeholder="Enter OpenAI or Anthropic API Key">
+            <select id="api-model">
+                <option value="gpt-4">OpenAI GPT-4</option>
+                <option value="claude-3.5">Anthropic Claude 3.5</option>
+            </select>
         </div>
+        <div class="input-container">
+            <label for="pdf-url">PDF URL:</label>
+            <input type="text" id="pdf-url" placeholder="Enter PDF URL of the legislation">
+        </div>
+        <div class="input-container">
+            <label for="pdf-file">Or Upload PDF:</label>
+            <input type="file" id="pdf-file" accept=".pdf">
+        </div>
+        <button id="analyze-btn">Analyze Legislation</button>
         <div id="loading">Analyzing... Please wait.</div>
         <div id="analysis-result"></div>
     </div>
