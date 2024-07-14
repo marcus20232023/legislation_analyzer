@@ -4,35 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legislation Analyzer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0; /* System color can be adjusted here */
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        label {
+            display: block;
+            margin: 5px 0;
+        }
+
+        button[type="submit"] {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .result-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            max-width: 80%; /* Adjust the width as needed */
+            margin-left: auto;
+            margin-right: auto;
+            word-wrap: break-word; /* Ensure long words break to the next line */
+        }
+        .result-box h2 {
+            margin-top: 0;
+        }
+        .result-box pre {
+            white-space: pre-wrap; /* Ensure preformatted text wraps */
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Legislation Analyzer</h1>
-            <button id="theme-toggle">Toggle Theme</button>
-        </header>
-        <div class="input-container">
-            <label for="api-key">API Key:</label>
-            <input type="password" id="api-key" placeholder="Enter OpenAI or Anthropic API Key">
-            <select id="api-model">
-                <option value="gpt-4">OpenAI GPT-4</option>
-                <option value="claude-3-5-sonnet-20240620">Anthropic Claude 3.5 Sonnet</option>
-            </select>
-        </div>
-        <div class="input-container">
-            <label for="pdf-url">PDF URL:</label>
-            <input type="text" id="pdf-url" placeholder="Enter PDF URL of the legislation">
-        </div>
-        <div class="input-container">
-            <label for="pdf-file">Or Upload PDF:</label>
-            <input type="file" id="pdf-file" accept=".pdf">
-        </div>
-        <button id="analyze-btn">Analyze Legislation</button>
-        <div id="loading">Analyzing... Please wait.</div>
-        <div id="analysis-result"></div>
+    <h1>Legislation Analyzer</h1>
+    <form method="post">
+        <label for="pdf_url">PDF URL:</label>
+        <input type="text" id="pdf_url" name="pdf_url" required>
+        <br>
+        <label for="api_key">API Key:</label>
+        <input type="text" id="api_key" name="api_key" required>
+        <br>
+        <label for="api_model">API Model:</label>
+        <select id="api_model" name="api_model" required>
+            <option value="gpt-4">GPT-4</option>
+            <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
+        </select>
+        <br>
+        <button type="submit">Analyze</button>
+    </form>
+
+    {% if analysis_result %}
+    <div class="result-box">
+        <h2>Analysis Result:</h2>
+        <pre>{{ analysis_result }}</pre>
     </div>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% endif %}
 </body>
 </html>
